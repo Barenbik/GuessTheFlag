@@ -26,6 +26,7 @@ struct ContentView: View {
     @State private var score = 0
     @State private var questionsAsked = 0
     @State private var gameCompleted = false
+    @State private var selectedFlagNumber: Int? = nil
     
     var body: some View {
         ZStack {
@@ -52,12 +53,18 @@ struct ContentView: View {
                             .font(.largeTitle.weight(.semibold))
                     }
                     
-                    ForEach(0..<3) { number in
+                    ForEach(0..<3) { flagNumber in
                         Button {
-                            flagTapped(number)
+                            withAnimation {
+                                flagTapped(flagNumber)
+                            }
                         } label: {
-                            FlagImage(country: countries[number])
+                            FlagImage(country: countries[flagNumber])
                         }
+                        .rotation3DEffect(.degrees(selectedFlagNumber == flagNumber ? 360 : 0), axis: (x: 0, y: 1, z: 0))
+                        .opacity(selectedFlagNumber == nil ? 1.0 : flagNumber == selectedFlagNumber ? 1.0 : 0.25)
+                        .scaleEffect(selectedFlagNumber == nil ? 1.0 : flagNumber == selectedFlagNumber ? 1.0 : 0.75)
+                        .animation(.default, value: selectedFlagNumber)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -88,16 +95,17 @@ struct ContentView: View {
         }
     }
     
-    func flagTapped(_ number: Int) {
-        if number == correctAnswer {
+    func flagTapped(_ flagNumber: Int) {
+        if flagNumber == correctAnswer {
             scoreTitle = "Correct"
             score += 1
             scoreText = "Your score is \(score)"
         } else {
             scoreTitle = "Wrong"
-            scoreText = "Thats the flag of \(countries[number])"
+            scoreText = "Thats the flag of \(countries[flagNumber])"
         }
         
+        selectedFlagNumber = flagNumber
         questionsAsked += 1
         showingScore = true
     }
@@ -108,6 +116,8 @@ struct ContentView: View {
         } else {
             shuffleFlags()
         }
+        
+        selectedFlagNumber = nil
     }
     
     func resetGame() {
